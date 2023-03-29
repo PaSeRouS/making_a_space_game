@@ -3,7 +3,7 @@ import curses
 import random
 import time
 
-from animation import animation_frames
+from animation import animate_frames
 
 
 TIC_TIMEOUT= 0.1
@@ -20,18 +20,19 @@ async def blink(canvas, row, column, symbol='*', offset_tics=10):
   
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(8):
+        for _ in range(20):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(6):
+        for _ in range(5):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(4):
+        for _ in range(3):
             await asyncio.sleep(0)
 
 
@@ -72,18 +73,23 @@ def draw(canvas):
 
     canvas_rows, canvas_columns = canvas.getmaxyx()
 
-    start_row = int(canvas_rows / 2)
-    start_column = int(canvas_columns / 2)
+    start_screen_row = 1
+    start_screen_column = 1
+    end_screen_row = canvas_rows - 2
+    end_screen_column = canvas_columns - 2
+
+    center_row = int(canvas_rows / 2)
+    center_column = int(canvas_columns / 2)
 
     coroutines = []
-    coroutines.append(fire(canvas, start_row, start_column))
+    coroutines.append(fire(canvas, center_row, center_column))
 
     for _ in range(100):
         coroutines.append(
             blink(
                 canvas,
-                random.randint(1, canvas_rows - 2),
-                random.randint(1, canvas_columns - 2),
+                random.randint(start_screen_row, end_screen_row),
+                random.randint(start_screen_column, end_screen_column),
                 random.choice(['*', '+', '.', ':']),
                 random.randint(1, 10)
             )
@@ -99,10 +105,10 @@ def draw(canvas):
 
     rocket_frames = (rocket_frame_1, rocket_frame_2)
 
-    coro_rocket_anim = animation_frames(
+    coro_rocket_anim = animate_frames(
         canvas,
-        start_row,
-        start_column,
+        center_row,
+        center_column,
         rocket_frames
     )
     coroutines.append(coro_rocket_anim)
